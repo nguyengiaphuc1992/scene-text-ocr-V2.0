@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+Pillow
+paddleocr==2.7.0.0
+onnxruntime==1.13.1
+numpy
+jsons

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SENCE TEXT HAN NOM OCR BETA VERSION - HCMUS</title>
+    <style>
+        @font-face {
+            font-family: "CustomFont";
+            src: url("./NomNaTong-Regular.ttf") format("truetype");
+        }
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        .preview {
+            width: 100%;   /* Adjust the width as needed */
+            height: 600px;  /* Adjust the height as needed */
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        .preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .upload-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+
+        .text-value {
+            margin-top: 20px;
+            font-family: "CustomFont", Arial, sans-serif, "Source Sans Pro";  /* Use the custom font */
+            max-height: 300px; /* Set the maximum height for the text container */
+            overflow-y: scroll; /* Enable vertical scrolling */
+            font-size: 24px;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 8px 12px;
+            cursor: pointer;
+            background-color: #af4c4c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #d83434;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .filename-label {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .footer img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="preview">
+            <img id="preview-img" src="" alt="Preview" />
+            <div id="text-value" class="text-value"></div>
+        </div>
+        <br>
+        <label for="upload-input" class="custom-file-upload">Choose File</label>
+        <input type="file" id="upload-input" accept="image/*" class="hidden-input" />
+        <div id="filename-label" class="filename-label"></div>
+        <button class="upload-btn" onclick="convertAndSend()">Upload and Send</button>
+    </div>
+    <br>
+    <div class="footer">
+        <img src="./footer.png" alt="Footer Image">
+    </div>
+
+    <script>
+        console.log("Phan Minh Toan")
+        var currentURL = window.location.href; 
+        function convertAndSend() {
+            const fileInput = document.getElementById('upload-input');
+            const previewImg = document.getElementById('preview-img');
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.addEventListener('load', function () {
+                previewImg.src = reader.result;
+                const base64Data = reader.result.split(',')[1]; // Extract only the base64 data
+                sendToBackend(base64Data);
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function sendToBackend(base64Data) {
+            // Send the base64 data to the backend using AJAX or fetch API
+            // Example using fetch API
+            var api_url = currentURL + 'nom-ocr'
+            //fetch('https://nom-ocr-hcmus.nicetree-11fa6ea6.southeastasia.azurecontainerapps.io/nom-ocr-end-to-end', {
+            fetch(api_url, {
+                method: 'POST',
+                body: JSON.stringify({ base64Data }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle response from the backend
+                    handleResponse(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function handleResponse(data) {
+            const imageBase64 = data.imageBase64;
+            const textValue = data.ocrResult;
+
+            // Update the image preview with the returned image base64
+            const previewImg = document.getElementById('preview-img');
+            previewImg.src = 'data:image/jpeg;base64,' + imageBase64;
+            
+
+            // Display the text values
+            const textValueDiv = document.getElementById('text-value');
+            textValueDiv.innerHTML = ''; // Clear previous contents
+
+            textValue.forEach(text => {
+                const p = document.createElement('p');
+                p.textContent = ''; // Create an empty text node
+                p.innerHTML = ""+text; // Assign the HTML content
+                textValueDiv.appendChild(p);
+            });
+        }
+    </script>
+</body>
+</html>

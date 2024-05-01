@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chuyển đổi ảnh sang base64 với EXIF</title>
+</head>
+<body>
+<input type="file" id="fileInput" accept="image/*">
+<button id="uploadButton">Tải lên</button>
+<img id="previewImg" src="#" alt="Preview">
+<a id="downloadLink" download="converted_image.jpg">Tải xuống ảnh chuyển đổi</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+<script>
+document.getElementById('uploadButton').addEventListener('click', function () {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert("Hãy chọn một file ảnh!");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener('load', function () {
+        EXIF.getData(file, function() {
+            const exifData = EXIF.getAllTags(this);
+            const originalImage = new Blob([reader.result], { type: file.type });
+
+            const base64Promise = new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    resolve(reader.result);
+                };
+                reader.readAsDataURL(originalImage);
+            });
+
+            base64Promise.then((base64Data) => {
+                // Hiển thị ảnh đã chọn
+                document.getElementById('previewImg').src = base64Data;
+
+                // Tạo một liên kết tải xuống
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = base64Data;
+
+                // You can also do something with the EXIF data here if needed
+                console.log("EXIF data:", exifData);
+            });
+        });
+    }, false);
+
+    reader.readAsArrayBuffer(file);
+});
+</script>
+</body>
+</html>
